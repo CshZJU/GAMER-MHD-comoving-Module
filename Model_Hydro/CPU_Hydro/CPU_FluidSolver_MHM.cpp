@@ -282,7 +282,7 @@ __global__
 void CUFLU_FluidSolver_MHM(
    const real   g_Flu_Array_In [][NCOMP_TOTAL][ CUBE(FLU_NXT) ],
          real   g_Flu_Array_Out[][NCOMP_TOTAL][ CUBE(PS2) ],
-   const real   g_Mag_Array_In [][NCOMP_MAG][ FLU_NXT_P1*SQR(FLU_NXT) ],
+         real   g_Mag_Array_In [][NCOMP_MAG][ FLU_NXT_P1*SQR(FLU_NXT) ],
          real   g_Mag_Array_Out[][NCOMP_MAG][ PS2P1*SQR(PS2) ],
          char   g_DE_Array_Out [][ CUBE(PS2) ],
          real   g_Flux_Array   [][9][NCOMP_TOTAL][ SQR(PS2) ],
@@ -447,11 +447,11 @@ void CPU_FluidSolver_MHM(
             g_PriVar_1PG[3][idx] = g_Flu_Array_In[P][3][idx]*_Dens;
 
 //       transformation of B field in comoving frame
-// #        ifdef COMOVING
-//          g_Mag_Array_In[P][1]=SQRT((real)Time)*g_Mag_Array_In[P][1];
-//          g_Mag_Array_In[P][2]=SQRT((real)Time)*g_Mag_Array_In[P][2];
-//          g_Mag_Array_In[P][3]=SQRT((real)Time)*g_Mag_Array_In[P][3];
-// #        endif            
+#        ifdef COMOVING
+         g_Mag_Array_In[P][0] *= SQRT((real)Time);
+         g_Mag_Array_In[P][1] *= SQRT((real)Time);
+         g_Mag_Array_In[P][2] *= SQRT((real)Time);
+#        endif            
 
 //          magnetic field
             MHD_GetCellCenteredBField( CC_B, g_Mag_Array_In[P][0], g_Mag_Array_In[P][1], g_Mag_Array_In[P][2],
@@ -607,11 +607,11 @@ void CPU_FluidSolver_MHM(
                                   NormPassive, NNorm, c_NormIdx, &EoS, &s_FullStepFailure, Iteration, MinMod_MaxIter );
 
 //          
-// #           ifdef COMOVING
-//             g_Mag_Array_Out[P][1]=(real)1.0/SQRT((real)Time)*g_Mag_Array_In[P][1];
-//             g_Mag_Array_Out[P][2]=(real)1.0/SQRT((real)Time)*g_Mag_Array_In[P][2];
-//             g_Mag_Array_Out[P][3]=(real)1.0/SQRT((real)Time)*g_Mag_Array_In[P][3];
-// #           endif 
+#           ifdef COMOVING
+            g_Mag_Array_Out[P][0] *= (real)1.0/SQRT((real)Time);
+            g_Mag_Array_Out[P][1] *= (real)1.0/SQRT((real)Time);
+            g_Mag_Array_Out[P][2] *= (real)1.0/SQRT((real)Time);
+#           endif 
             
 //          add the cosmic-ray source term of adiabatic work
 #           ifdef COSMIC_RAY
