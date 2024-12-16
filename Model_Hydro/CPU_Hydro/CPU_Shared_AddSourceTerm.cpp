@@ -92,11 +92,18 @@ void Hydro_AddSourceTerm_HalfStep_MHM( const real g_ConVar_In[][ CUBE(FLU_NXT) ]
                                        g_FC_B_In[TDir2][ idx_B_T2 + LR*didx_B_T2[d]                    ] +
                                        g_FC_B_In[TDir2][ idx_B_T2                   + didx_B_T2[TDir2] ] +
                                        g_FC_B_In[TDir2][ idx_B_T2 + LR*didx_B_T2[d] + didx_B_T2[TDir2] ] );
+// calculate the B square for energy extra term
+      const real B2 = B_N * B_N + B_T1 * B_T1 + B_T2 * B_T2;
+
+#     ifdef COMOVING
+//    1. calculate extra term
+      ExtraTerm = 1/2*Hubble0*pow(Time,5)*B2;
+#     endif // #ifdef COMOVING
 #     endif // #ifdef MHD
 
 
 //    2. update
-      // fcCon[f][DENS] += ExtraTerm;
+      fcCon[f][DENS] += ExtraTerm;
 
    } // for (int f=0; f<6; f++)
 
@@ -183,7 +190,20 @@ void Hydro_AddSourceTerm_CCVar_HalfStep_MHM_RP( const real g_ConVar_In[][ CUBE(F
    const real B_yR = g_FC_B_In[1][idx_B_yR];
    const real B_zL = g_FC_B_In[2][idx_B_zL];
    const real B_zR = g_FC_B_In[2][idx_B_zR];
-#  endif
+#  ifdef COMOVING
+// 1. calculate the onecell cell-centered magnetic field
+   const real B_x_center = 0.5 * (B_xL + B_xR);
+   const real B_y_center = 0.5 * (B_yL + B_yR);
+   const real B_z_center = 0.5 * (B_zL + B_zR);
+
+// 2. calculate the extra energy term
+   const real B_Center2 = B_x_center * B_x_center + B_y_center * B_y_center + B_z_center * B_z_center;
+   real extra_term = 1/2*Hubble0*pow(Time,5)*B_Center2;
+
+// 3. update the comoving magnetic energy
+   OneCell[ENGY] += extra_term;
+#  endif //# ifdef COMOVING
+#  endif //# ifdef MHD
 
 // Example: cosmic ray adiabatic work done term
 // #  ifdef COSMIC_RAY
